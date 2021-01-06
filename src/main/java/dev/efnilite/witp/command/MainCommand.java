@@ -17,11 +17,11 @@ public class MainCommand extends BukkitCommand {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         Player player = null;
-        if (sender instanceof Player) {
-            player = (Player) sender;
-        }
+        if (sender instanceof Player)   player = (Player) sender;
+
+
         if (args.length == 0) {
-            sender.sendMessage(Util.color("&7--------------- &aWITP &7---------------"));
+            sender.sendMessage(Util.color("&7--------------- &aWITPfork &7---------------"));
             sender.sendMessage(Util.color("&a/witp &f- &7Main command"));
             sender.sendMessage(Util.color("&a/witp join [player] &f- &7Join the game on this server or make another player join"));
             sender.sendMessage(Util.color("&a/witp leave &f- &7Leave the game on this server"));
@@ -92,6 +92,6 @@ public class MainCommand extends BukkitCommand {
 
     @Override
     public List<String> tabComplete(Player player, String[] args) {
-        return Arrays.asList("join", "generate", "customize", "leave");
+        return Arrays.asList("join", "leave", "leaderboard", "menu");
     }
 }

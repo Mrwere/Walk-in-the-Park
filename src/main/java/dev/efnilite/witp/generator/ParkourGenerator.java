@@ -1,5 +1,6 @@
 package dev.efnilite.witp.generator;
 
+import com.sun.org.apache.xerces.internal.xs.StringList;
 import dev.efnilite.witp.player.ParkourPlayer;
 import dev.efnilite.witp.WITP;
 import dev.efnilite.witp.events.BlockGenerateEvent;
@@ -13,9 +14,11 @@ import dev.efnilite.witp.util.particle.Particles;
 import dev.efnilite.witp.util.task.Tasks;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.CommandBlock;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Slab;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.craftbukkit.v1_16_R3.block.CraftBlock;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
@@ -157,13 +160,26 @@ public class ParkourGenerator {
                             // Rewards
                             if (Configurable.REWARDS && totalScore % Configurable.REWARDS_INTERVAL == 0) {
                                 if (Configurable.REWARDS_COMMAND != null) {
-                                    Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), Configurable.REWARDS_COMMAND);
+                                    if (Configurable.REWARDS_COMMAND.contains("%PLAYER%"))
+                                       Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), Configurable.REWARDS_COMMAND.replaceAll("%PLAYER%", player.getPlayer().getName()));
+
+                                     else Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), Configurable.REWARDS_COMMAND);
                                 }
+
                                 if (Configurable.REWARDS_MONEY != 0) {
                                     Util.depositPlayer(player.getPlayer(), Configurable.REWARDS_MONEY);
                                 }
                                 player.send(Configurable.REWARDS_MESSAGE);
                             }
+
+                            // Moar Rewards
+                            if (Configurable.MOARREWARDS && WITP.getConfiguration().getString("config", "moarrewards.intervals."+score) != null) {
+                                String[] cmds = WITP.getConfiguration().getString("config", "moarrewards.intervals."+score).split(";;");
+                                int size = cmds.length;
+                                for(int i = 0; i < size; i++){
+                                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmds[i].toString().replaceAll("%PLAYER%", player.getPlayer().getName()));
+                                }
+                             }
 
                             new PlayerScoreEvent(player).call();
                             if (player.showScoreboard && Configurable.SCOREBOARD) {
@@ -626,6 +642,9 @@ public class ParkourGenerator {
         public static boolean SCOREBOARD;
         public static boolean INVENTORY_HANDLING;
 
+        // Forked config stuff
+        public static boolean MOARREWARDS;
+
         // Advanced settings
         public static double BORDER_SIZE;
         public static int GENERATOR_CHECK;
@@ -682,6 +701,8 @@ public class ParkourGenerator {
             SOUND_PITCH = config.getInt("particles.sound-pitch");
             PARTICLE_TYPE = Particle.valueOf(config.getString("particles.particle-type").toUpperCase());
 
+            // Forked config stuff
+            MOARREWARDS = config.getBoolean("moarrewards.enabled");
             // Advanced settings
             BORDER_SIZE = file.getDouble("advanced.border-size");
             GENERATOR_CHECK = file.getInt("advanced.generator-check");

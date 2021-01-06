@@ -19,19 +19,22 @@ public class UpdateChecker {
             @Override
             public void run() {
                 String latest;
+                String forkLatest;
                 try {
                     latest = getLatestVersion();
+                    forkLatest = getLatestForkVersion();
                 } catch (IOException ex) {
                     ex.printStackTrace();
                     Verbose.error("Error while trying to fetch latest version!");
                     return;
                 }
-                if (!WITP.getInstance().getDescription().getVersion().equals(latest)) {
-                    Verbose.info("A new version of WITP is available to download!");
-                    Verbose.info("Newest version: " + latest);
-                    WITP.isOutdated = true;
+
+                if(!forkLatest.equals(WITP.getInstance().getDescription().getVersion())) {
+                        Verbose.info("A new version of forked WITP is available to download!");
+                        Verbose.info("Newest version: " + forkLatest);
+                        WITP.isOutdated = true;
                 } else {
-                    Verbose.info("WITP is currently up-to-date!");
+                    Verbose.info("WITP fork is is currently up-to-date! v"+forkLatest+" (official: v"+latest+")");
                 }
             }
         };
@@ -58,4 +61,26 @@ public class UpdateChecker {
         reader.close();
         return version;
     }
+
+    private String getLatestForkVersion() throws IOException {
+        InputStream stream;
+        Verbose.info("Checking for updates...");
+        try {
+            stream = new URL("https://raw.githubusercontent.com/Mrwere/Walk-in-the-Park/main/src/main/resources/plugin.yml").openStream();
+        } catch (IOException e) {
+            Verbose.info("Unable to check for updates!");
+            return "";
+        }
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+        String version = reader.lines()
+                .filter(s -> s.contains("version: ") && !s.contains("api"))
+                .collect(Collectors.toList())
+                .get(0)
+                .replace("version: ", "");
+        stream.close();
+        reader.close();
+        return version;
+    }
+
 }
